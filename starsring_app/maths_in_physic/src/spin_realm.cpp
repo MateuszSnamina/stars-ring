@@ -41,9 +41,9 @@ SpinRealm::SpinRealm(unsigned requested_multiplicity)
       S_m(arma::diagmat(S_pm_diag, -1)) {}
 
 std::ostream& operator<<(std::ostream& s, const SpinRealm& spin_realm) {
-  s << "Sz:" << std::endl << spin_realm.S_z << std::endl;
-  s << "Sp:" << std::endl << spin_realm.S_p << std::endl;
-  s << "S_m:" << std::endl << spin_realm.S_m << std::endl;
+  s << "S_z:" << std::endl << spin_realm.S_z << std::endl;
+  s << "S^+:" << std::endl << spin_realm.S_p << std::endl;
+  s << "S^-:" << std::endl << spin_realm.S_m << std::endl;
   return s;
 }
 
