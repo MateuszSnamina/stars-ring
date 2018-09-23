@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 2.8)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wpedantic -pthread")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DARMA_NO_DEBUG")
+message("All   flags  :" ${CMAKE_CXX_FLAGS} )
+message("Debug flags  :" ${CMAKE_CXX_FLAGS_DEBUG} )
+message("Release flags:" ${CMAKE_CXX_FLAGS_RELEASE} )
+
+add_subdirectory(utility_kit)
+add_subdirectory(maths_in_physic)
+add_subdirectory(stars_ring_core)
+add_subdirectory(stars_ring_basis)
+add_subdirectory(stars_ring_numerical)
+add_subdirectory(stars_ring_analytical)
+add_subdirectory(stars_ring)
