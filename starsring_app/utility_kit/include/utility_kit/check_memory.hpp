@@ -3,9 +3,8 @@
 
 namespace utility {
 
-    void check_memory();
+void check_memory();
 
 }
 
-#endif 
-
+#endif

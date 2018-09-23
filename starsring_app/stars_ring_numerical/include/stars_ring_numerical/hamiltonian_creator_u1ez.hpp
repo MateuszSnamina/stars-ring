@@ -1,13 +1,13 @@
 #ifndef HAMILTONIAN_CREATOR_U1EZ_HPP
 #define HAMILTONIAN_CREATOR_U1EZ_HPP
 /*
-#include<memory>
 #include<armadillo>
+#include<memory>
 
-#include<stars_ring_basis/basis.hpp>
 #include<maths_in_physic/spin_realm.hpp>
-#include<stars_ring_numerical/standard_calculator.hpp>
+#include<stars_ring_basis/basis.hpp>
 #include<stars_ring_numerical/phis_establisher.hpp>
+#include<stars_ring_numerical/standard_calculator.hpp>
 
 namespace stars_ring_numerical {
 
