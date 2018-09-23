@@ -30,3 +30,14 @@
 *.exe
 *.out
 *.app
+
+# build
+/starsring_app/build_debug/*
+!/starsring_app/build_debug/README
+/starsring_app/build_release/*
+!/starsring_app/build_release/README
+/starsring_app/build_vsc/*
+!/starsring_app/build_vsc/README
+
+# cache for my calulator:
+/starsring_optimizer/cache/*.log

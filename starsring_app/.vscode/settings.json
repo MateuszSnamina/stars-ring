@@ -1,0 +1,4 @@
+{
+    "cmake.buildDirectory": "${workspaceRoot}/build_vsc",
+    "C_Cpp.clang_format_fallbackStyle": "Chromium"
+}
