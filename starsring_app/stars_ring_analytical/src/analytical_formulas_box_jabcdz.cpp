@@ -64,7 +64,7 @@ ArgAndExpansion AlphaCos2PlusBetaCos::arg_and_expansion(double x) const {
 
 ArgAndExpansion AlphaCos2PlusBetaCos::get_minimum() const {
   if (_alpha == 0.0 && _beta == 0.0) {
-    std::cerr << "[WARNING] cannnot mimimize f(x) = 0 * cos(x)^2 + 0 * cos(x) "
+    std::cerr << "[WARNING] cannnot mimimize f(x) = 0 * cos^2(x) + 0 * cos(x) "
                  "function."
               << std::endl;
   }
