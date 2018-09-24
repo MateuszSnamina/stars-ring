@@ -314,8 +314,10 @@ int main(int argc, char** argv) {
     // ---------------------------------------------------------------------
     const unsigned requested_states_to_calculate = 10;
     calculator.do_calculations_sparse(requested_states_to_calculate);
-    // std::cout << arma::mat(calculator.hamiltonian_sparse()) << std::endl;
-    // //debug!
+    if (program_options.print_hamiltonian) {
+      std::cout << "[DATA   ] hamiltonian: " << std::endl;
+      std::cout << arma::mat(calculator.hamiltonian_sparse()) << std::endl;
+    }
     print_ground_state_basic_information(calculator);
     // ---------------------------------------------------------------------
     stars_ring_numerical::MorphologyAlalizer morphology_analizator(
@@ -359,8 +361,10 @@ int main(int argc, char** argv) {
         physical_system->n_cells() +
         program_options.n_extra_states_to_calculate_one_star_space_calculations;
     calculator.do_calculations_sparse(requested_states_to_calculate);
-    std::cout << arma::mat(calculator.hamiltonian_sparse()) << std::endl;
-    // debug!
+    if (program_options.print_hamiltonian) {
+      std::cout << "[DATA   ] hamiltonian: " << std::endl;
+      std::cout << arma::mat(calculator.hamiltonian_sparse()) << std::endl;
+    }
     print_ground_state_basic_information(calculator);
     for (unsigned i = 0; i < calculator.n_calculated_states(); i++) {
       const double energy = calculator.energies(i);

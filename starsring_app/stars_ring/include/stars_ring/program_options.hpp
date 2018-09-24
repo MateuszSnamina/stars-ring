@@ -10,6 +10,7 @@ struct ProgramOptions {
   unsigned multiplicity;
   std::string hamiltonian_type;
   bool print_basis;
+  bool print_hamiltonian;
   bool omit_zero_star_space_calculations;
   bool omit_one_star_space_calculations;
   unsigned n_extra_states_to_calculate_one_star_space_calculations;

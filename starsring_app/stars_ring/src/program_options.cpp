@@ -50,8 +50,13 @@ ProgramOptions grep_program_options(int argc, char** argv) {
       ("print_basis",
        boost::program_options::bool_switch(&program_options.print_basis)
            ->default_value(false),
-       "print basis sets (localized basis, translation unique basis and "
-       "ksubaspace basis).")
+       "print the basis sets (the localized basis, the translation unique "
+       "basis and the ksubaspace basis).")
+      // --print_hamiltonian:
+      ("print_hamiltonian",
+       boost::program_options::bool_switch(&program_options.print_hamiltonian)
+           ->default_value(false),
+       "print the hamiltonian (as a dense matrix).")
       // --omit_zero_star_space_calculations:
       ("omit_zero_star_space_calculations",
        boost::program_options::bool_switch(
