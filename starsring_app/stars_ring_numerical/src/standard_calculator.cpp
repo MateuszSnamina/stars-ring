@@ -48,6 +48,8 @@ void StandardCalculator::do_calculations_sparse_diagonalize() {
             << std::endl;
   arma::wall_clock timer;
   timer.tic();
+  assert(_hamiltonian_sparse.n_cols == _hamiltonian_sparse.n_rows);
+  assert(_n_calculated_states < _hamiltonian_sparse.n_cols);
   if (!arma::eigs_sym(_energies, _states, _hamiltonian_sparse,
                       _n_calculated_states, "sa")) {
     std::cerr << "[ERROR  ] Armadillo failed to diagonalize the hamiltonian!"
@@ -56,6 +58,9 @@ void StandardCalculator::do_calculations_sparse_diagonalize() {
               << std::endl;
     exit(20);
   }
+  assert(_energies.n_elem == _n_calculated_states);
+  assert(_states.n_cols == _n_calculated_states);
+  assert(_states.n_rows == _hamiltonian_sparse.n_rows);
   const double calculation_time = timer.toc();
   std::cout << "[INFO   ] [PROGRESS] [SPARSE] Program has diagonalized the "
                "hamiltonian"
