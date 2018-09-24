@@ -40,7 +40,7 @@ def f(x, target : '("ground"|"excited")' = "ground", target_nk : '(int|None)' = 
     'ground' : '--omit_one_star_space_calculations',
     'excited' : '--omit_zero_star_space_calculations'}
   command = './stars_ring -H jabcdz --phi0 {theta_0} --delta_phi {delta_theta} -z{Ez}'.format(theta_0 = theta_0, delta_theta = delta_theta, Ez = Ez) + ' ' + target_to_switch[target]
-  command =  command + " > " + log_file_path
+  command =  command + " > " + log_file_path + " 2>&1"
   print("[DEBUG] [f(x)] command: " + command)
   subprocess.check_call(command, shell=True)
   # create link, this may be useful when looking into the cache directory:
