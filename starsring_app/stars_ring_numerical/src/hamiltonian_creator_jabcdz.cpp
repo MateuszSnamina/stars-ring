@@ -16,6 +16,11 @@ double phi1_tauc_psi2(double theta_1, double theta_2) {
   return -std::cos((theta_1 + theta_2) / 2.0) / 2.0;
 }
 
+double phi1_tau_anty_c_psi2(double theta_1, double theta_2) {
+  // tau^{anty_c} = + |+><+| - |-><-|
+  return +std::sin((theta_1 + theta_2) / 2.0) / 2.0;
+}
+
 double psi1_id_psi2(const RawPhis &bra_phis, const RawPhis &ket_phis) {
   assert(bra_phis.size() == ket_phis.size());
   double result = 1.0;
@@ -99,6 +104,8 @@ void JABCDZHamiltonianCreator::creat_hamiltonian(
       }
       for (unsigned i = 0; i < n_sites; i++) {
         diag_energy += -_Ez * phi1_tauc_psi2(ket_phis[i], ket_phis[i]);
+        double Ex = 0.1;  // debug!!!
+        diag_energy += -Ex * phi1_tau_anty_c_psi2(ket_phis[i], ket_phis[i]);
       }
       H(ket_idx, ket_idx) = diag_energy;
     }
