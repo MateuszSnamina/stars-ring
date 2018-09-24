@@ -9,13 +9,19 @@ import numpy as np
 from scipy.optimize import minimize
 
 # physical params:
-Ez = 100
+Ez = 0
 
 #cache init:
 cache_idx = 0
 subprocess.call("[ -d cache ] && rm -r cache", shell=True)
 subprocess.call("mkdir cache", shell=True)
 
+
+def opt_int_str_to_int(s):
+  if (s == "--"):
+    return float("nan")
+  else:
+    return int(s)
 
 def f(x, target : '("ground"|"excited")' = "ground", target_nk : '(int|None)' = None ):
   global cache_idx
@@ -34,7 +40,7 @@ def f(x, target : '("ground"|"excited")' = "ground", target_nk : '(int|None)' = 
     'ground' : '--omit_one_star_space_calculations',
     'excited' : '--omit_zero_star_space_calculations'}
   command = './stars_ring -H jabcdz --phi0 {theta_0} --delta_phi {delta_theta} -z{Ez}'.format(theta_0 = theta_0, delta_theta = delta_theta, Ez = Ez) + ' ' + target_to_switch[target]
-  command =  command + " > " +  log_file_path
+  command =  command + " > " + log_file_path
   print("[DEBUG] [f(x)] command: " + command)
   subprocess.check_call(command, shell=True)
   # create link, this may be useful when looking into the cache directory:
@@ -57,10 +63,10 @@ def f(x, target : '("ground"|"excited")' = "ground", target_nk : '(int|None)' = 
      if result:
        #print("[DEBUG] [f(x)] pre-match line: ", line)
        energy = float(result.group(5).strip())
-       nk = int(result.group(1).strip())
-       print("[DEBUG] [f(x)] energy: ", energy)
+       nk = opt_int_str_to_int(result.group(1).strip())       
        if target == 'ground' or (target == 'excited' and nk == target_nk):
          print("[DEBUG] [f(x)] match line: ", line)
+         print("[DEBUG] [f(x)] energy: ", energy)
          return energy 
   print("[ERROR] [f(x)] fail to grep the output energy")
   return None
@@ -68,6 +74,8 @@ def f(x, target : '("ground"|"excited")' = "ground", target_nk : '(int|None)' = 
 init_guesses = []
 init_guesses.append([0, 0])
 init_guesses.append([math.pi, 0])
+init_guesses.append([0, math.pi / 2.0])
+init_guesses.append([0, math.pi])
 
 #ctx = {"target" : "ground"}
 ctx = {"target" : "excited", "target_nk" : 2 } 
