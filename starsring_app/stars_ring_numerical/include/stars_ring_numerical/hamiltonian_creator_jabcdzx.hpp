@@ -14,6 +14,7 @@
  * H = J * (A + B * \vec \hat S_i \cdot \vec \hat S_j) *
  *         (C + D * \hat tau^c_i * \hat tau^c_j)
  *     - Ez * tau^c_i
+ *     - Ex * tau^anty_i
  *
  * promujący AF/FO gdy Ez=0 (chyba...?)
  *
@@ -22,9 +23,14 @@
  * Ez<0 promuje zeta_c (theta = 0).
  *
  * Operatory orbitalne:
- * tau_c = ( |xi_c><xi_c| - |zeta_c><zeta_c| ) / 2.0   // Konwencja ,,po
- * staremu'' [przed zamiana tau := - tau] np. <zeta|tau_c|zeta> = <0|tau_c|0> =
- * -1 np. <xi|tau_c|xi>     = <180|tau_c|180> = +1
+ * tau_c = ( |xi_c><xi_c| - |zeta_c><zeta_c| ) / 2.0
+ * // Konwencja ,,po staremu'' [przed zamiana tau := - tau]
+ * np. <zeta|tau_c|zeta> = <0|tau_c|0>     = -1/2
+ * np. <xi|tau_c|xi>     = <180|tau_c|180> = +1/2
+ *
+ * tau^anty = ( |+><+| - |-><-| )
+ * np. <+|tau^anty|+> = <90|tau_c|90>     = +1/2
+ * np. <-|tau^anty|-> = <-90|tau_c|-90>   = -1/2
  *
  * Uwaga: dla C = 0.25, D = 1.0
  *        operator orbitalny to nie jest ani P^{xi,xi}, ani P^{zeta,xi}, ani
@@ -60,11 +66,11 @@
 
 namespace stars_ring_numerical {
 
-class JABCDZHamiltonianCreator : public HamiltonianCreator {
+class JABCDZXHamiltonianCreator : public HamiltonianCreator {
  public:
-  JABCDZHamiltonianCreator(
+  JABCDZXHamiltonianCreator(
       maths_in_physic::SpinRealm spin_realm, double A, double B, double C,
-      double D, double J, double Ez,
+      double D, double J, double Ez, double Ex,
       std::shared_ptr<const PhisEstablisher> phis_establisher);
   virtual void creat_hamiltonian(
       arma::mat& H,
@@ -76,7 +82,7 @@ class JABCDZHamiltonianCreator : public HamiltonianCreator {
  private:
   const maths_in_physic::SpinRealm _spin_realm;
   double _A, _B, _C, _D;
-  double _J, _Ez;
+  double _J, _Ez, _Ex;
   std::shared_ptr<const PhisEstablisher> _phis_establisher;
 };
 

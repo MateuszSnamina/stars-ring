@@ -9,16 +9,12 @@
 
 namespace stars_ring_analytical {
 
-class AnalyticalFormulasBoxJABCDZ : public AnalyticalFormulasBox {
+class AnalyticalFormulasBoxJABCDZX : public AnalyticalFormulasBox {
  public:
-  AnalyticalFormulasBoxJABCDZ(
+  AnalyticalFormulasBoxJABCDZX(
       std::shared_ptr<stars_ring_core::PhysicalSystem> physical_system,
       unsigned multiplicity, double A, double B, double C, double D, double J,
-      double Ez, double theta);
-  AnalyticalFormulasBoxJABCDZ(
-      std::shared_ptr<stars_ring_core::PhysicalSystem> physical_system,
-      unsigned multiplicity, double A, double B, double C, double D, double J,
-      double Ez);
+      double Ez, double Ex, double theta);
 
   double ground_state_classical_energy() const override;
   double ground_state_correlation_energy() const override;
@@ -26,14 +22,14 @@ class AnalyticalFormulasBoxJABCDZ : public AnalyticalFormulasBox {
   double theta() const;
   double mean_orbital_operator() const;
   double J_spin() const;
-  double theta_opt_nell() const;
-  double theta_opt_corrected_nell() const;
+  //   double theta_opt_nell() const;
+  //   double theta_opt_corrected_nell() const;
 
  private:
   AnalyticalFormulasBoxAfSpins _analytical_formulas_box_af_spins;
   const unsigned _multiplicity;
   const double _A, _B, _C, _D;
-  const double _J, _Ez;
+  const double _J, _Ez, _Ex;
   const double _theta;
 };
 

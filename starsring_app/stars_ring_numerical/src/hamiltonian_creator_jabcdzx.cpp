@@ -3,7 +3,7 @@
 #include <stars_ring_basis/raw_state.hpp>
 
 #include <stars_ring_basis/raw_state_operations.hpp>
-#include <stars_ring_numerical/hamiltonian_creator_jabcdz.hpp>
+#include <stars_ring_numerical/hamiltonian_creator_jabcdzx.hpp>
 
 namespace {
 
@@ -16,7 +16,7 @@ double phi1_tauc_psi2(double theta_1, double theta_2) {
   return -std::cos((theta_1 + theta_2) / 2.0) / 2.0;
 }
 
-double phi1_tau_anty_c_psi2(double theta_1, double theta_2) {
+double phi1_tauanty_psi2(double theta_1, double theta_2) {
   // tau^{anty_c} = + |+><+| - |-><-|
   return +std::sin((theta_1 + theta_2) / 2.0) / 2.0;
 }
@@ -54,8 +54,6 @@ double psi1_orbitij_psi2(const RawPhis &bra_phis, const unsigned i,
   assert(bra_phis.size() == ket_phis.size());
   double orbit_ss = psi1_id_psi2(bra_phis, ket_phis);
   double orbit_tt = psi1_tauci_taucj_psi2(bra_phis, i, j, ket_phis);
-  // const double alpha = +(1.0 / 4.0);
-  // const double beta = +1.0;
   return alpha * orbit_ss + beta * orbit_tt;
 }
 
@@ -63,9 +61,9 @@ double psi1_orbitij_psi2(const RawPhis &bra_phis, const unsigned i,
 
 namespace stars_ring_numerical {
 
-JABCDZHamiltonianCreator::JABCDZHamiltonianCreator(
+JABCDZXHamiltonianCreator::JABCDZXHamiltonianCreator(
     maths_in_physic::SpinRealm spin_realm, double A, double B, double C,
-    double D, double J, double Ez,
+    double D, double J, double Ez, double Ex,
     std::shared_ptr<const PhisEstablisher> phis_establisher)
     :  //_spin_realm(maths_in_physic::SpinRealm(2)),
       _spin_realm(spin_realm),
@@ -75,14 +73,21 @@ JABCDZHamiltonianCreator::JABCDZHamiltonianCreator(
       _D(D),
       _J(J),
       _Ez(Ez),
-      _phis_establisher(phis_establisher) {}
+      _Ex(Ex),
+      _phis_establisher(phis_establisher) {
+  std::cout << "[DEBUG  ] [JABCDZXHamiltonianCreator] [ctor-data] ";
+  std::cout << "A, B, C, D : " << _A << ", " << _B << ", " << _C << ", " << _D
+            << std::endl;
+  std::cout << "[DEBUG  ] [JABCDZXHamiltonianCreator] [ctor-data] ";
+  std::cout << "J, Ez, Ex  : " << _J << ", " << _Ez << ", " << _Ex << std::endl;
+}
 
-void JABCDZHamiltonianCreator::creat_hamiltonian(
+void JABCDZXHamiltonianCreator::creat_hamiltonian(
     arma::mat &H, const stars_ring_basis::LocalizedBasis &basis) const {
   throw std::logic_error("not implementd!");
 }
 
-void JABCDZHamiltonianCreator::creat_hamiltonian(
+void JABCDZXHamiltonianCreator::creat_hamiltonian(
     arma::sp_mat &H, const stars_ring_basis::LocalizedBasis &basis) const {
   assert(basis.physical_system());
   const unsigned n_sites = basis.physical_system()->n_sites();
@@ -104,8 +109,7 @@ void JABCDZHamiltonianCreator::creat_hamiltonian(
       }
       for (unsigned i = 0; i < n_sites; i++) {
         diag_energy += -_Ez * phi1_tauc_psi2(ket_phis[i], ket_phis[i]);
-        double Ex = 0.1;  // debug!!!
-        diag_energy += -Ex * phi1_tau_anty_c_psi2(ket_phis[i], ket_phis[i]);
+        diag_energy += -_Ex * phi1_tauanty_psi2(ket_phis[i], ket_phis[i]);
       }
       H(ket_idx, ket_idx) = diag_energy;
     }

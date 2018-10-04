@@ -12,26 +12,24 @@
 #include <maths_in_physic/oscilator_realm.hpp>
 #include <maths_in_physic/spin_realm.hpp>
 #include <stars_ring/program_options.hpp>
+#include <stars_ring_analytical/analytical_formulas_box_af_oscilators.hpp>
+#include <stars_ring_analytical/analytical_formulas_box_af_spins.hpp>
+#include <stars_ring_analytical/analytical_formulas_box_jabcdzx.hpp>
+#include <stars_ring_analytical/standard_calculator.hpp>
 #include <stars_ring_basis/basis_print.hpp>
 #include <stars_ring_basis/basis_toolbox.hpp>
 #include <stars_ring_basis/basis_typedefs.hpp>
 #include <stars_ring_basis/raw_state_coupled_elements_generator.hpp>
 #include <stars_ring_basis/raw_state_operations.hpp>
 #include <stars_ring_core/physical_system.hpp>
-#include <stars_ring_numerical/hamiltonian_creator_jabcdz.hpp>
+#include <stars_ring_numerical/hamiltonian_creator_jabcdzx.hpp>
 #include <stars_ring_numerical/hamiltonian_creator_oscylator.hpp>
 #include <stars_ring_numerical/hamiltonian_creator_spin.hpp>
 #include <stars_ring_numerical/morphology_alalizer.hpp>
+#include <stars_ring_numerical/phis_establisher.hpp>
 #include <stars_ring_numerical/standard_calculator.hpp>
 #include <utility_kit/print_utility.hpp>
 #include <utility_kit/section_controller.hpp>
-
-#include <stars_ring_analytical/analytical_formulas_box_af_oscilators.hpp>
-#include <stars_ring_analytical/analytical_formulas_box_af_spins.hpp>
-#include <stars_ring_analytical/analytical_formulas_box_jabcdz.hpp>
-#include <stars_ring_analytical/standard_calculator.hpp>
-
-#include <stars_ring_numerical/phis_establisher.hpp>
 
 /*
 std::complex<double> determine_coupling(
@@ -97,12 +95,190 @@ void print_ground_state_basic_information(
   const double quantum_energy = calculator.energies(0);
   const double classical_energy = calculator.hamiltonian_sparse()(0, 0);
   const double correlation_energy = quantum_energy - classical_energy;
-  std::cout << utility::ValuePut<double>("[DATA   ] ground state energy", 45,
-                                         quantum_energy);
   std::cout << utility::ValuePut<double>(
-      "[DATA   ] ground state classical energy", 45, classical_energy);
+      "[DATA   ] [NUMERICAL] ground state energy", 55, quantum_energy);
   std::cout << utility::ValuePut<double>(
-      "[DATA   ] ground state correlation energy", 45, correlation_energy);
+      "[DATA   ] [NUMERICAL] ground state classical energy", 55,
+      classical_energy);
+  std::cout << utility::ValuePut<double>(
+      "[DATA   ] [NUMERICAL] ground state correlation energy", 55,
+      correlation_energy);
+}
+
+void print_subspace_indices(stars_ring_numerical::DegeneracySubspacesAnalizer&
+                                degeneracy_subspace_analizer) {
+  auto f = std::cout.flags();
+  std::cout << std::fixed;
+  std::cout << std::right;
+
+  for (unsigned n_subspace = 0;
+       n_subspace < degeneracy_subspace_analizer.n_subspaces(); n_subspace++) {
+    std::cout << "[DATA   ] [NUMERICAL] ";
+    std::cout << "n_subspace, [from, to), size: ";
+    std::cout << std::setw(3) << n_subspace << ", ";
+    std::cout << "[" << std::setw(3)
+              << degeneracy_subspace_analizer.subspace_indices(n_subspace).first
+              << ", ";
+    std::cout
+        << std::setw(3)
+        << degeneracy_subspace_analizer.subspace_indices(n_subspace).second
+        << ")"
+        << ", ";
+    std::cout
+        << std::setw(3)
+        << degeneracy_subspace_analizer.subspace_indices(n_subspace).second -
+               degeneracy_subspace_analizer.subspace_indices(n_subspace).first
+        << std::endl;
+  }
+  std::cout.flags(f);
+}
+
+void print_original_states_content(
+    stars_ring_numerical::DegeneracySubspacesAnalizer&
+        degeneracy_subspace_analizer,
+    double energy_ground_state_zero_stars_subspace) {
+  auto f = std::cout.flags();
+  std::cout << std::fixed;
+  std::cout << std::setprecision(10);
+  std::cout << std::showpos;
+  std::cout << std::right;
+  for (unsigned n_state = 0;
+       n_state < degeneracy_subspace_analizer.n_original_states(); n_state++) {
+    std::cout << "[DATA   ] [NUMERICAL] ";
+    std::cout << "n_state, energy, excitation_energy, (content...): ";
+    std::cout << std::setw(5) << n_state << ", ";
+    std::cout << std::setw(15)
+              << degeneracy_subspace_analizer.original_state_energy(n_state)
+              << ", ";
+    std::cout << std::setw(15)
+              << degeneracy_subspace_analizer.original_state_energy(n_state) -
+                     energy_ground_state_zero_stars_subspace
+              << ", ";
+    std::cout << "(";
+    for (double content :
+         degeneracy_subspace_analizer.content_original_state(n_state)) {
+      std::cout << std::setw(12) << content << ", ";
+    }
+    std::cout << ")";
+    std::cout << std::endl;
+  }
+  std::cout.flags(f);
+}
+
+void print_subspace_content(stars_ring_numerical::DegeneracySubspacesAnalizer&
+                                degeneracy_subspace_analizer,
+                            double energy_ground_state_zero_stars_subspace) {
+  auto f = std::cout.flags();
+  std::cout << std::fixed;
+  std::cout << std::setprecision(10);
+  std::cout << std::showpos;
+  std::cout << std::right;
+  for (unsigned n_subspace = 0;
+       n_subspace < degeneracy_subspace_analizer.n_subspaces(); n_subspace++) {
+    std::cout << "[DATA   ] [NUMERICAL] ";
+    std::cout << "n_subspace, energy, excitation_energy, (content...): ";
+    std::cout << std::setw(3) << n_subspace << ", ";
+    std::cout << std::setw(15)
+              << degeneracy_subspace_analizer.subspace_energy(n_subspace)
+              << ", ";
+    std::cout << std::setw(15)
+              << degeneracy_subspace_analizer.subspace_energy(n_subspace) -
+                     energy_ground_state_zero_stars_subspace
+              << ", ";
+    std::cout << "(";
+    for (double content :
+         degeneracy_subspace_analizer.content_subspace(n_subspace)) {
+      std::cout << std::setw(15) << content << ", ";
+    }
+    std::cout << ")";
+    std::cout << std::endl;
+  }
+  std::cout.flags(f);
+}
+
+void print_subspace_filtered_content_version1(
+    stars_ring_numerical::DegeneracySubspacesAnalizer&
+        degeneracy_subspace_analizer,
+    double energy_ground_state_zero_stars_subspace) {
+  auto f = std::cout.flags();
+  std::cout << std::fixed;
+  std::cout << std::setprecision(10);
+  std::cout << std::showpos;
+  std::cout << std::right;
+  for (unsigned n_subspace = 0;
+       n_subspace < degeneracy_subspace_analizer.n_subspaces(); n_subspace++) {
+    std::cout << "[DATA   ] [NUMERICAL] ";
+    std::cout << "n_subspace, energy, excitation_energy, (content...): ";
+    std::cout << std::setw(3) << n_subspace << ", ";
+    std::cout << std::setw(15)
+              << degeneracy_subspace_analizer.subspace_energy(n_subspace)
+              << ", ";
+    std::cout << std::setw(15)
+              << degeneracy_subspace_analizer.subspace_energy(n_subspace) -
+                     energy_ground_state_zero_stars_subspace
+              << ", ";
+    std::cout << "(";
+    if (degeneracy_subspace_analizer.subspace_validity(n_subspace)) {
+      for (unsigned nk :
+           degeneracy_subspace_analizer.fileted_content_subspace(n_subspace))
+        std::cout << std::setw(3) << nk << ", ";
+    } else {
+      std::cout << "not-valid-content";
+    }
+    std::cout << ")";
+    std::cout << std::endl;
+  }
+  std::cout.flags(f);
+}
+
+void print_subspace_filtered_content_version2(
+    stars_ring_numerical::DegeneracySubspacesAnalizer&
+        degeneracy_subspace_analizer,
+    double energy_ground_state_zero_stars_subspace) {
+  auto f = std::cout.flags();
+  std::cout << std::fixed;
+  std::cout << std::setprecision(10);
+  std::cout << std::showpos;
+  std::cout << std::right;
+  for (unsigned n_subspace = 0;
+       n_subspace < degeneracy_subspace_analizer.n_subspaces(); n_subspace++) {
+    if (degeneracy_subspace_analizer.subspace_validity(n_subspace)) {
+      for (unsigned nk :
+           degeneracy_subspace_analizer.fileted_content_subspace(n_subspace)) {
+        std::cout << "[DATA   ] [NUMERICAL] ";
+        std::cout << "n_subspace, nk, energy, excitation_energy: ";
+        std::cout << std::setw(3) << n_subspace << ", ";
+        std::cout << std::setw(3) << nk << ", ";
+        std::cout << std::setw(15)
+                  << degeneracy_subspace_analizer.subspace_energy(n_subspace)
+                  << ", ";
+        std::cout << std::setw(15)
+                  << degeneracy_subspace_analizer.subspace_energy(n_subspace) -
+                         energy_ground_state_zero_stars_subspace
+                  << std::endl;
+      }
+    } else {
+      for (unsigned idx =
+               degeneracy_subspace_analizer.subspace_indices(n_subspace).first;
+           idx <
+           degeneracy_subspace_analizer.subspace_indices(n_subspace).second;
+           ++idx) {
+        std::cout << "[DATA   ] [NUMERICAL]";
+        std::cout << "n_subspace, nk, energy, excitation_energy: ";
+        std::cout << std::setw(3) << n_subspace << ", ";
+        std::cout << std::setw(3) << "---"
+                  << ", ";
+        std::cout << std::setw(15)
+                  << degeneracy_subspace_analizer.subspace_energy(n_subspace)
+                  << ", ";
+        std::cout << std::setw(15)
+                  << degeneracy_subspace_analizer.subspace_energy(n_subspace) -
+                         energy_ground_state_zero_stars_subspace
+                  << std::endl;
+      }
+    }
+  }
+  std::cout.flags(f);
 }
 
 int main(int argc, char** argv) {
@@ -142,10 +318,6 @@ int main(int argc, char** argv) {
             << program_options.multiplicity << std::endl;
   std::cout << "[DATA   ] [PROGRAM_OPTIONS] hamiltonian_type:   "
             << program_options.hamiltonian_type << std::endl;
-  std::cout << "[DATA   ] [PROGRAM_OPTIONS] hamiltonian::J:     "
-            << program_options.hamiltonian_J << std::endl;
-  std::cout << "[DATA   ] [PROGRAM_OPTIONS] hamiltonian::Ez:    "
-            << program_options.hamiltonian_Ez << std::endl;
 
   // #######################################################################
   // ######################    Physical system    ##########################
@@ -206,8 +378,18 @@ int main(int argc, char** argv) {
     hamiltonian_creator =
         std::make_shared<stars_ring_numerical::OscylatorHamiltonianCreator>(
             oscilator_realm);
-  } else if (program_options.hamiltonian_type == "jabcdz") {
-    std::cout << "[INFO   ] Hamiltonian type -- jabcdz" << std::endl;
+  } else if (program_options.hamiltonian_type == "jabcdzx") {
+    std::cout << "[INFO   ] Hamiltonian type -- jabcdzx" << std::endl;
+    std::cout << "[DATA   ] [PROGRAM_OPTIONS] hamiltonian::J:     "
+              << program_options.hamiltonian_J << std::endl;
+    std::cout << "[DATA   ] [PROGRAM_OPTIONS] hamiltonian::Ez:    "
+              << program_options.hamiltonian_Ez << std::endl;
+    std::cout << "[DATA   ] [PROGRAM_OPTIONS] hamiltonian::Ex:    "
+              << program_options.hamiltonian_Ex << std::endl;
+    std::cout << "[DATA   ] [PROGRAM_OPTIONS] phis_establisher::phi0:       "
+              << program_options.phi_0 << std::endl;
+    std::cout << "[DATA   ] [PROGRAM_OPTIONS] phis_establisher::delta_phi:  "
+              << program_options.delta_phi << std::endl;
     if (program_options.multiplicity < program_options.n_max_stars) {
       std::cerr << "[ERROR] The condition (multiplicity < n_max_stars) is "
                    "unphysical and will cause the program fatal error!"
@@ -215,19 +397,17 @@ int main(int argc, char** argv) {
       exit(102);
     }
     const maths_in_physic::SpinRealm spin_realm(program_options.multiplicity);
-    const double A = std::pow(spin_realm.S, 2);
+    // const double A = std::pow(spin_realm.S, 2);
+    const double A = 0.0;  // debug!!
     const double B = +1.0;
-    const double C = 1.0 / 4.0;
+    // const double C = 1.0 / 4.0;
+    const double C = 0.0;  // debug!!
     const double D = +1.0;
-    std::cout << "[DATA   ] [PROGRAM_OPTIONS] phis_establisher::phi0:       "
-              << program_options.phi_0 << std::endl;
-    std::cout << "[DATA   ] [PROGRAM_OPTIONS] phis_establisher::delta_phi:  "
-              << program_options.delta_phi << std::endl;
     analytical_formulas_box =
-        std::make_shared<stars_ring_analytical::AnalyticalFormulasBoxJABCDZ>(
+        std::make_shared<stars_ring_analytical::AnalyticalFormulasBoxJABCDZX>(
             physical_system, program_options.multiplicity, A, B, C, D,
             program_options.hamiltonian_J, program_options.hamiltonian_Ez,
-            program_options.phi_0);
+            program_options.hamiltonian_Ex, program_options.phi_0);
     coupled_raw_states_generator =
         std::make_shared<stars_ring_basis::CoupledRawStatesGenerator_AF>(
             program_options.n_max_stars);
@@ -240,9 +420,10 @@ int main(int argc, char** argv) {
             std::make_shared<stars_ring_numerical::SimplePhisEstablisher>(
                 program_options.phi_0, program_options.delta_phi);
     hamiltonian_creator =
-        std::make_shared<stars_ring_numerical::JABCDZHamiltonianCreator>(
+        std::make_shared<stars_ring_numerical::JABCDZXHamiltonianCreator>(
             spin_realm, A, B, C, D, program_options.hamiltonian_J,
-            program_options.hamiltonian_Ez, phis_establisher);
+            program_options.hamiltonian_Ez, program_options.hamiltonian_Ex,
+            phis_establisher);
   } else {
     std::cerr << "[ERROR] Invalid hamiltonian type program option."
               << std::endl;
@@ -255,41 +436,47 @@ int main(int argc, char** argv) {
   {
     section_controller.new_section("ANALITYCAL-THEORY");
     // ---------------------------------------------------------------------
-    if (program_options.hamiltonian_type == "jabcdz") {
-      auto analytical_formulas_box_jabcdz = std::dynamic_pointer_cast<
-          stars_ring_analytical::AnalyticalFormulasBoxJABCDZ>(
+    if (program_options.hamiltonian_type == "jabcdzx") {
+      auto analytical_formulas_box_jabcdzx = std::dynamic_pointer_cast<
+          stars_ring_analytical::AnalyticalFormulasBoxJABCDZX>(
           analytical_formulas_box);
-      std::cout << "[DATA   ] theta                 : "
-                << analytical_formulas_box_jabcdz->theta() << std::endl;
-      std::cout << "[DATA   ] mean_orbital_operator : "
-                << analytical_formulas_box_jabcdz->mean_orbital_operator()
-                << std::endl;
-      std::cout << "[DATA   ] J_spin                : "
-                << analytical_formulas_box_jabcdz->J_spin() << std::endl;
-      std::cout << "[DATA   ] theta_opt (nell)           : "
-                << analytical_formulas_box_jabcdz->theta_opt_nell()
-                << std::endl;
-      std::cout << "[DATA   ] theta_opt (corrected nell) : "
-                << analytical_formulas_box_jabcdz->theta_opt_corrected_nell()
-                << std::endl;
+      std::cout << utility::ValuePut<double>(
+          "[DATA   ] [ANALITYCAL-THEORY] [jabcdzx] theta", 70,
+          analytical_formulas_box_jabcdzx->theta());
+      std::cout << utility::ValuePut<double>(
+          "[DATA   ] [ANALITYCAL-THEORY] [jabcdzx] mean_orbital_operator", 70,
+          analytical_formulas_box_jabcdzx->mean_orbital_operator());
+      std::cout << utility::ValuePut<double>(
+          "[DATA   ] [ANALITYCAL-THEORY] [jabcdzx] J_spin", 70,
+          analytical_formulas_box_jabcdzx->J_spin());
+
+      //   std::cout << "[DATA   ] [ANALITYCAL-THEORY] theta_opt (nell) : "
+      //             << analytical_formulas_box_jabcdzx->theta_opt_nell()
+      //             << std::endl;
+      //   std::cout << "[DATA   ] [ANALITYCAL-THEORY] theta_opt (corrected
+      //   nell) : "
+      //             <<
+      //             analytical_formulas_box_jabcdzx->theta_opt_corrected_nell()
+      //             << std::endl;
     }
     // ---------------------------------------------------------------------
     stars_ring_analytical::StandardCalculator standard_calculator(
         analytical_formulas_box);
     standard_calculator.calculate();
     std::cout << utility::ValuePut<double>(
-        "[DATA   ] ground state absolute classical energy", 50,
-        standard_calculator.ground_state_classical_energy());
+        "[DATA   ] [ANALITYCAL-THEORY] ground state absolute classical energy",
+        70, standard_calculator.ground_state_classical_energy());
     std::cout << utility::ValuePut<double>(
-        "[DATA   ] ground state absolute classical energy", 50,
+        "[DATA   ] [ANALITYCAL-THEORY] ground state correlation energy", 70,
         standard_calculator.ground_state_correlation_energy());
     std::cout << utility::ValuePut<double>(
-        "[DATA   ] ground state absolute energy", 50,
+        "[DATA   ] [ANALITYCAL-THEORY] ground state absolute energy", 70,
         standard_calculator.ground_state_energy());
     for (unsigned i = 0; i < standard_calculator.n_exc_states(); ++i)
       std::cout << utility::ValuePut<double>(
-          "[DATA   ] excitation energy (#" + std::to_string(i) + ")", 50,
-          standard_calculator.exc_state_relative_energy(i));
+          "[DATA   ] [ANALITYCAL-THEORY] excitation energy (#" +
+              std::to_string(i) + ")",
+          70, standard_calculator.exc_state_relative_energy(i));
   }
 
   // #######################################################################
@@ -315,7 +502,7 @@ int main(int argc, char** argv) {
     const unsigned requested_states_to_calculate = 10;
     calculator.do_calculations_sparse(requested_states_to_calculate);
     if (program_options.print_hamiltonian) {
-      std::cout << "[DATA   ] hamiltonian: " << std::endl;
+      std::cout << "[DATA   ] [NUMERICAL] hamiltonian: " << std::endl;
       std::cout << arma::mat(calculator.hamiltonian_sparse()) << std::endl;
     }
     print_ground_state_basic_information(calculator);
@@ -326,7 +513,8 @@ int main(int argc, char** argv) {
       const double energy = calculator.energies(i);
       const arma::vec state = calculator.states(i);
       morphology_analizator.calculate_morphology(state);
-      std::cout << "[DATA   ] state nk, n_stars, n_stars_A, n_stars_B, energy: "
+      std::cout << "[DATA   ] [NUMERICAL] state nk, n_stars, n_stars_A, "
+                   "n_stars_B, energy: "
                 << std::setw(5) << morphology_analizator.main_nk() << ", "
                 << std::setw(10) << morphology_analizator.average_n_stars()
                 << ", " << std::setw(10)
@@ -362,14 +550,14 @@ int main(int argc, char** argv) {
         program_options.n_extra_states_to_calculate_one_star_space_calculations;
     calculator.do_calculations_sparse(requested_states_to_calculate);
     if (program_options.print_hamiltonian) {
-      std::cout << "[DATA   ] hamiltonian: " << std::endl;
+      std::cout << "[DATA   ] [NUMERICAL] hamiltonian: " << std::endl;
       std::cout << arma::mat(calculator.hamiltonian_sparse()) << std::endl;
     }
     print_ground_state_basic_information(calculator);
     for (unsigned i = 0; i < calculator.n_calculated_states(); i++) {
       const double energy = calculator.energies(i);
-      std::cout << "[DATA   ] energy, excitation_energy: " << std::setw(10)
-                << energy << ", " << std::setw(10)
+      std::cout << "[DATA   ] [NUMERICAL] energy, excitation_energy: "
+                << std::setw(10) << energy << ", " << std::setw(10)
                 << energy - energy_ground_state_zero_stars_subspace
                 << std::endl;
     }
@@ -380,7 +568,8 @@ int main(int argc, char** argv) {
       const double energy = calculator.energies(i);
       const arma::vec state = calculator.states(i);
       morphology_analizator.calculate_morphology(state);
-      std::cout << "[DATA   ] state nk, n_stars, n_stars_A, n_stars_B, energy, "
+      std::cout << "[DATA   ] [NUMERICAL] state nk, n_stars, n_stars_A, "
+                   "n_stars_B, energy, "
                    "excitation_energy: "
                 << std::setw(5) << morphology_analizator.main_nk() << ", "
                 << std::setw(10) << morphology_analizator.average_n_stars()
@@ -390,7 +579,26 @@ int main(int argc, char** argv) {
                 << ", " << std::setw(10) << energy << ", " << std::setw(10)
                 << energy - energy_ground_state_zero_stars_subspace
                 << std::endl;
-      // ---------------------------------------------------------------------
     }
+    // ---------------------------------------------------------------------
+    stars_ring_numerical::DegeneracySubspacesAnalizer
+        degeneracy_subspace_analizer(calculator.energies(), calculator.states(),
+                                     calculator.basis_box());
+    degeneracy_subspace_analizer.determine_subspaces_indices();
+    print_subspace_indices(degeneracy_subspace_analizer);
+    degeneracy_subspace_analizer.determine_original_states_content();
+    print_original_states_content(degeneracy_subspace_analizer,
+                                  energy_ground_state_zero_stars_subspace);
+    degeneracy_subspace_analizer.determine_subspaces_content();
+    // print_subspace_content(degeneracy_subspace_analizer,
+    //                       energy_ground_state_zero_stars_subspace);
+    degeneracy_subspace_analizer.determine_subspaces_validity();
+    degeneracy_subspace_analizer.determine_filtered_subspaces_content();
+    // print_subspace_filtered_content_version1(
+    //    degeneracy_subspace_analizer,
+    //    energy_ground_state_zero_stars_subspace);
+    print_subspace_filtered_content_version2(
+        degeneracy_subspace_analizer, energy_ground_state_zero_stars_subspace);
+    // ---------------------------------------------------------------------
   }
 }

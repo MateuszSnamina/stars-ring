@@ -3,7 +3,7 @@
 #include <cmath>
 
 #include <stars_ring_analytical/analytical_formulas_box_af_spins.hpp>
-#include <stars_ring_analytical/analytical_formulas_box_jabcdz.hpp>
+#include <stars_ring_analytical/analytical_formulas_box_jabcdzx.hpp>
 
 namespace {
 
@@ -110,10 +110,10 @@ ArgAndExpansion AlphaCos2PlusBetaCos::get_minimum() const {
 
 namespace stars_ring_analytical {
 
-AnalyticalFormulasBoxJABCDZ::AnalyticalFormulasBoxJABCDZ(
+AnalyticalFormulasBoxJABCDZX::AnalyticalFormulasBoxJABCDZX(
     std::shared_ptr<stars_ring_core::PhysicalSystem> physical_system,
     unsigned multiplicity, double A, double B, double C, double D, double J,
-    double Ez, double theta)
+    double Ez, double Ex, double theta)
     : AnalyticalFormulasBox(physical_system),
       _analytical_formulas_box_af_spins(physical_system, multiplicity),
       _multiplicity(multiplicity),
@@ -123,78 +123,65 @@ AnalyticalFormulasBoxJABCDZ::AnalyticalFormulasBoxJABCDZ(
       _D(D),
       _J(J),
       _Ez(Ez),
+      _Ex(Ex),
       _theta(theta) {
-  std::cout << "[DEBUG  ] [AnalyticalFormulasBoxSu4] A, B, C, D : " << _A
-            << ", " << _B << ", " << _C << ", " << _D << std::endl;
-  std::cout << "[DEBUG  ] [AnalyticalFormulasBoxSu4] J, Ez      : " << _J
-            << ", " << _Ez << std::endl;
+  std::cout << "[DEBUG  ] [AnalyticalFormulasBoxJABCDZX] [ctor-data] ";
+  std::cout << "A, B, C, D : " << _A << ", " << _B << ", " << _C << ", " << _D
+            << std::endl;
+  std::cout << "[DEBUG  ] [AnalyticalFormulasBoxJABCDZX] [ctor-data] ";
+  std::cout << "J, Ez, Ex  : " << _J << ", " << _Ez << ", " << _Ex << std::endl;
 }
 
-// ponizsza funkcja powinna byc funkcją konstruktorowa, nie konstruktorem:
-/*
-AnalyticalFormulasBoxJABCDZ::AnalyticalFormulasBoxJABCDZ(
-        std::shared_ptr<stars_ring_core::PhysicalSystem> physical_system,
-        unsigned multiplicity,
-        double A, double B, double C, double D,
-        double J, double Ez) :
-AnalyticalFormulasBoxJABCDZ(
-physical_system,
-multiplicity,
-A, B, C, D,
-J, Ez,
-calculate_theta_opt_total(physical_system, multiplicity, A, B, D, J, Ez)) {
-}
- */
-
-double AnalyticalFormulasBoxJABCDZ::ground_state_classical_energy() const {
+double AnalyticalFormulasBoxJABCDZX::ground_state_classical_energy() const {
   return _J * _A * mean_orbital_operator() * physical_system()->n_sites() +
          J_spin() *
-             _analytical_formulas_box_af_spins.ground_state_classical_energy() -
-         _Ez * (-std::cos(_theta) / 2.0) * physical_system()->n_sites();
+             _analytical_formulas_box_af_spins.ground_state_classical_energy() +
+         (-_Ez) * (-std::cos(_theta) / 2.0) * physical_system()->n_sites() +
+         (-_Ex) * (+std::sin(_theta) / 2.0) * physical_system()->n_sites();
 }
 
-double AnalyticalFormulasBoxJABCDZ::ground_state_correlation_energy() const {
+double AnalyticalFormulasBoxJABCDZX::ground_state_correlation_energy() const {
   return J_spin() *
          _analytical_formulas_box_af_spins.ground_state_correlation_energy();
 }
 
-double AnalyticalFormulasBoxJABCDZ::exc_state_relative_energy(
+double AnalyticalFormulasBoxJABCDZX::exc_state_relative_energy(
     unsigned nk) const {
   return J_spin() *
          _analytical_formulas_box_af_spins.exc_state_relative_energy(nk);
 }
 
-double AnalyticalFormulasBoxJABCDZ::theta() const { return _theta; }
+double AnalyticalFormulasBoxJABCDZX::theta() const { return _theta; }
 
-double AnalyticalFormulasBoxJABCDZ::mean_orbital_operator() const {
+double AnalyticalFormulasBoxJABCDZX::mean_orbital_operator() const {
   return _C + _D * std::pow(std::cos(_theta), 2) / 4.0;
 }
 
-double AnalyticalFormulasBoxJABCDZ::J_spin() const {
+double AnalyticalFormulasBoxJABCDZX::J_spin() const {
   return _J * _B * mean_orbital_operator();
 }
 
-double AnalyticalFormulasBoxJABCDZ::theta_opt_nell() const {
-  const stars_ring_analytical::AnalyticalFormulasBoxAfSpins
-      analytical_formulas_box_af_spins(physical_system(), _multiplicity);
-  const double alpha =
-      _J * _A * _D * physical_system()->n_sites() +
-      _J * _B * _D *
-          analytical_formulas_box_af_spins.ground_state_classical_energy();
-  const double beta = physical_system()->n_sites() * (-_Ez) * (-1.0 / 2.0);
-  AlphaCos2PlusBetaCos fun(alpha, beta);
-  return fun.get_minimum().x;
-}
+// double AnalyticalFormulasBoxJABCDZX::theta_opt_nell() const {
+//   const stars_ring_analytical::AnalyticalFormulasBoxAfSpins
+//       analytical_formulas_box_af_spins(physical_system(), _multiplicity);
+//   const double alpha =
+//       _J * _A * _D * physical_system()->n_sites() +
+//       _J * _B * _D *
+//           analytical_formulas_box_af_spins.ground_state_classical_energy();
+//   const double beta = physical_system()->n_sites() * (-_Ez) * (-1.0 / 2.0);
+//   AlphaCos2PlusBetaCos fun(alpha, beta);
+//   return fun.get_minimum().x;
+// }
 
-double AnalyticalFormulasBoxJABCDZ::theta_opt_corrected_nell() const {
-  const stars_ring_analytical::AnalyticalFormulasBoxAfSpins
-      analytical_formulas_box_af_spins(physical_system(), _multiplicity);
-  const double alpha =
-      _J * _A * _D * physical_system()->n_sites() +
-      _J * _B * _D * analytical_formulas_box_af_spins.ground_state_energy();
-  const double beta = physical_system()->n_sites() * (-_Ez) * (-1.0 / 2.0);
-  AlphaCos2PlusBetaCos fun(alpha, beta);
-  return fun.get_minimum().x;
-}
+// double AnalyticalFormulasBoxJABCDZX::theta_opt_corrected_nell() const {
+//   const stars_ring_analytical::AnalyticalFormulasBoxAfSpins
+//       analytical_formulas_box_af_spins(physical_system(), _multiplicity);
+//   const double alpha =
+//       _J * _A * _D * physical_system()->n_sites() +
+//       _J * _B * _D * analytical_formulas_box_af_spins.ground_state_energy();
+//   const double beta = physical_system()->n_sites() * (-_Ez) * (-1.0 / 2.0);
+//   AlphaCos2PlusBetaCos fun(alpha, beta);
+//   return fun.get_minimum().x;
+// }
 
 }  // namespace stars_ring_analytical

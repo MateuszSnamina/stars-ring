@@ -46,7 +46,8 @@
         "type_traits": "cpp",
         "tuple": "cpp",
         "typeinfo": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "*.ipp": "cpp"
     },
     "C_Cpp.clang_format_fallbackStyle": "Google",
     "cmake.buildDirectory": "${workspaceRoot}/build_vsc",

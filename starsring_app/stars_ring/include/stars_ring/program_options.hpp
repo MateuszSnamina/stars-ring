@@ -16,6 +16,7 @@ struct ProgramOptions {
   unsigned n_extra_states_to_calculate_one_star_space_calculations;
   double hamiltonian_J;
   double hamiltonian_Ez;
+  double hamiltonian_Ex;  
   double phi_0;
   double delta_phi;
 };

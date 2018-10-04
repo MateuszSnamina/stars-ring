@@ -3,7 +3,7 @@
 #include <stars_ring_basis/raw_state.hpp>
 
 #include <stars_ring_basis/raw_state_operations.hpp>
-#include <stars_ring_numerical/hamiltonian_creator_jabcdz.hpp>
+#include <stars_ring_numerical/hamiltonian_creator_jabcdzx.hpp>
 
 /*
 namespace {

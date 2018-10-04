@@ -45,7 +45,7 @@ ProgramOptions grep_program_options(int argc, char** argv) {
        boost::program_options::value<std::string>(
            &program_options.hamiltonian_type)
            ->default_value("spin"),
-       "'spin' or 'osc' or 'jabcdz'.")
+       "'spin' or 'osc' or 'jabcdzx'.")
       // --print_basis:
       ("print_basis",
        boost::program_options::bool_switch(&program_options.print_basis)
@@ -86,6 +86,11 @@ ProgramOptions grep_program_options(int argc, char** argv) {
        boost::program_options::value<double>(&program_options.hamiltonian_Ez)
            ->default_value(0.0),
        "Hamiltonian Ez parameter value.")
+      // --hamiltonian_Ex,-x:
+      ("hamiltonian_Ex,x",
+       boost::program_options::value<double>(&program_options.hamiltonian_Ex)
+           ->default_value(0.0),
+       "Hamiltonian Ex parameter value.")
       // --phi0,-0:
       ("phi0,0",
        boost::program_options::value<double>(&program_options.phi_0)

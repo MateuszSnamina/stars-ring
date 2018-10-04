@@ -50,17 +50,68 @@ void StandardCalculator::do_calculations_sparse_diagonalize() {
   timer.tic();
   assert(_hamiltonian_sparse.n_cols == _hamiltonian_sparse.n_rows);
   assert(_n_calculated_states < _hamiltonian_sparse.n_cols);
+  // std::cout << "XXXX " << _energies.n_elem << " " << _n_calculated_states
+  //          << std::endl;
   if (!arma::eigs_sym(_energies, _states, _hamiltonian_sparse,
                       _n_calculated_states, "sa")) {
-    std::cerr << "[ERROR  ] Armadillo failed to diagonalize the hamiltonian!"
-              << std::endl;
-    std::cerr << "[ERROR  ] Program termination (with exit code 20)."
-              << std::endl;
-    exit(20);
+    if (_hamiltonian_sparse.n_rows < 100) {
+      std::cout << "[INFO   ] [SPARSE] Armadillo failed to diagonalize the "
+                   "hamiltonian!"
+                << std::endl;
+      std::cout << "[INFO   ] [SPARSE] [FALL-BACK DENSE] Armadillo failed to "
+                   "diagonalize the "
+                   "hamiltonian as a dense matrix!"
+                << std::endl;
+      if (!arma::eig_sym(_energies, _states, arma::mat(_hamiltonian_sparse))) {
+        std::cerr << "[ERROR  ] [SPARSE] [FALL-BACK DENSE] Armadillo failed to "
+                     "diagonalize the hamiltonian!"
+                  << std::endl;
+        std::cerr << "[ERROR  ] [SPARSE] [FALL-BACK DENSE] Program termination "
+                     "(with exit code 20)."
+                  << std::endl;
+        exit(20);
+      }
+    } else {
+      std::cerr << "[ERROR  ] [SPARSE] Armadillo failed to diagonalize the "
+                   "hamiltonian!"
+                << std::endl;
+      std::cerr << "[ERROR  ] [SPARSE] Program termination (with exit code 20)."
+                << std::endl;
+      exit(20);
+    }
   }
-  assert(_energies.n_elem == _n_calculated_states);
-  assert(_states.n_cols == _n_calculated_states);
+  if (_energies.n_elem < _n_calculated_states) {
+    std::cout
+        << "[INFO   ] [SPARSE] Armadillo failed to diagonalize the hamiltonian "
+           "but not reporter an error!"
+        << std::endl;
+    std::cout << "[INFO   ] [SPARSE] [SECOND-TRY] The program is about to try "
+                 "diagonalize the "
+                 "hamiltonian with grater n_calculated_states requested."
+              << std::endl;
+    const unsigned n_calculated_states_second_try = std::min(
+        _n_calculated_states + 3, _basis_box.localized_basis().size() - 1);
+    std::cout << "[INFO   ] [SECOND-TRY] n_calculated_states, "
+                 "n_calculated_states_second_try: "
+              << _n_calculated_states << ", " << n_calculated_states_second_try
+              << "." << std::endl;
+    if (!arma::eigs_sym(_energies, _states, _hamiltonian_sparse,
+                        n_calculated_states_second_try, "sa")) {
+      std::cerr << "[ERROR  ] [SECOND-TRY] Armadillo failed to diagonalize the "
+                   "hamiltonian!"
+                << std::endl;
+      std::cerr
+          << "[ERROR  ] [SECOND-TRY] Program termination (with exit code 20)."
+          << std::endl;
+      exit(20);
+    }
+  }
+  assert(_energies.n_elem == _states.n_cols);
+  assert(_energies.n_elem >= _n_calculated_states);
+  assert(_states.n_cols >= _n_calculated_states);
   assert(_states.n_rows == _hamiltonian_sparse.n_rows);
+  _energies = _energies.rows(arma::span(0, _n_calculated_states - 1));
+  _states = _states.cols(arma::span(0, _n_calculated_states - 1));
   const double calculation_time = timer.toc();
   std::cout << "[INFO   ] [PROGRESS] [SPARSE] Program has diagonalized the "
                "hamiltonian"
@@ -107,9 +158,9 @@ void StandardCalculator::do_calculations_dense_diagonalize() {
     exit(20);
   }
   const double calculation_time = timer.toc();
-  std::cout
-      << "[INFO   ] [PROGRESS] [DENSE] Program has diagonalized the hamiltonian"
-      << " (in " << calculation_time << "s)." << std::endl;
+  std::cout << "[INFO   ] [PROGRESS] [DENSE] Program has diagonalized the "
+               "hamiltonian"
+            << " (in " << calculation_time << "s)." << std::endl;
 }
 
 void StandardCalculator::do_calculations_dense() {
